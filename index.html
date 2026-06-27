@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Hijri Age Calculator</title>
+
+  <!-- Facebook Instant Games SDK — MUST be first script in head -->
+  <script src="https://connect.facebook.net/en_US/fbinstant.6.3.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 70%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 90%, rgba(255,255,255,0.4) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #app {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .moon-wrap { text-align: center; margin-bottom: 8px; }
+    .moon {
+      font-size: 64px;
+      display: inline-block;
+      animation: float 3s ease-in-out infinite;
+      filter: drop-shadow(0 0 16px rgba(255,215,0,0.6));
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+
+    h1 {
+      text-align: center;
+      color: #ffd700;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+      text-shadow: 0 0 20px rgba(255,215,0,0.4);
+    }
+    .subtitle {
+      text-align: center;
+      color: rgba(255,255,255,0.55);
+      font-size: 0.85rem;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,215,0,0.18);
+      border-radius: 24px;
+      padding: 32px 28px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    label {
+      display: block;
+      color: rgba(255,255,255,0.8);
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    input[type="date"] {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255,215,0,0.3);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 1.05rem;
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      -webkit-appearance: none;
+      color-scheme: dark;
+    }
+    input[type="date"]:focus {
+      border-color: #ffd700;
+      box-shadow: 0 0 0 3px rgba(255,215,0,0.15);
+    }
+
+    .btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, #ffd700, #ff9500);
+      color: #1a1a2e;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 20px rgba(255,149,0,0.4);
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:hover  { box-shadow: 0 6px 28px rgba(255,149,0,0.55); }
+
+    .result { display: none; margin-top: 28px; text-align: center; }
+    .result.show { display: block; }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .unit-box {
+      background: rgba(255,215,0,0.08);
+      border: 1px solid rgba(255,215,0,0.25);
+      border-radius: 14px;
+      padding: 14px 6px;
+    }
+    .unit-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #ffd700;
+      line-height: 1;
+      display: block;
+      text-shadow: 0 0 12px rgba(255,215,0,0.5);
+    }
+    .unit-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 4px;
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .date-row {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+    .date-row .row-label {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.45);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .date-row .row-value {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.9);
+      font-weight: 500;
+    }
+
+    .fun-fact {
+      margin-top: 14px;
+      background: rgba(255,215,0,0.06);
+      border-left: 3px solid #ffd700;
+      border-radius: 0 10px 10px 0;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.5;
+      text-align: left;
+    }
+    .fun-fact strong { color: #ffd700; }
+
+    hr.divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin: 20px 0;
+    }
+
+    .share-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: #1877f2;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .share-btn:hover { background: #1465d6; }
+
+    .reset-link {
+      display: block;
+      text-align: center;
+      color: rgba(255,215,0,0.6);
+      font-size: 0.82rem;
+      cursor: pointer;
+      margin-top: 14px;
+      text-decoration: underline;
+    }
+    .reset-link:hover { color: #ffd700; }
+  </style>
+</head>
+<body>
+
+  <div id="app" style="display:none; width:100%; max-width:420px; position:relative; z-index:1;">
+    <div class="moon-wrap"><span class="moon">&#9775;&#65039;</span></div>
+    <h1>Hijri Age Calculator</h1>
+    <p class="subtitle">&#1603;&#1605; &#1593;&#1605;&#1585;&#1603; &#1576;&#1575;&#1604;&#1578;&#1602;&#1608;&#1610;&#1605; &#1575;&#1604;&#1607;&#1580;&#1585;&#1610;&#1567;</p>
+
+    <div class="card">
+      <div id="inputSection">
+        <label for="dob">Enter your date of birth (Gregorian)</label>
+        <input type="date" id="dob" />
+        <button class="btn" onclick="calculate()">Calculate My Hijri Age</button>
+      </div>
+
+      <div class="result" id="resultSection">
+        <div class="result-grid">
+          <div class="unit-box">
+            <span class="unit-value" id="hijriYears">0</span>
+            <span class="unit-label">Years</span>
+          </div>
+          <div class="unit-box">
+            <span class="unit-value" id="hijriMonths">0</span>
+            <span class="unit-label">Months</span>
+          </div>
+          <div class="unit-box">
+            <span class="unit-value" id="hijriDays">0</span>
+            <span class="unit-label">Days</span>
+          </div>
+        </div>
+
+        <div class="date-row">
+          <div class="row-label">Your Hijri Birth Date</div>
+          <div class="row-value" id="hijriBirth"></div>
+        </div>
+        <div class="date-row">
+          <div class="row-label">Today in Hijri</div>
+          <div class="row-value" id="hijriToday"></div>
+        </div>
+
+        <div class="fun-fact" id="funFact"></div>
+
+        <hr class="divider" />
+
+        <button class="share-btn" onclick="shareResult()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.791-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
+          </svg>
+          Share on Facebook
+        </button>
+
+        <span class="reset-link" onclick="resetForm()">&#8592; Calculate for another date</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var HIJRI_MONTHS = [
+      'Muharram','Safar',"Rabi' I","Rabi' II",
+      'Jumada I','Jumada II','Rajab',"Sha'ban",
+      'Ramadan','Shawwal','Dhu al-Qidah','Dhu al-Hijjah'
+    ];
+
+    function gregorianToHijri(gy, gm, gd) {
+      var jd = Math.floor((1461*(gy+4800+Math.floor((gm-14)/12)))/4)
+             + Math.floor((367*(gm-2-12*Math.floor((gm-14)/12)))/12)
+             - Math.floor((3*(Math.floor((gy+4900+Math.floor((gm-14)/12))/100)))/4)
+             + gd - 32075;
+      var l = jd - 1948440 + 10632;
+      var n = Math.floor((l-1)/10631);
+      l = l - 10631*n + 354;
+      var j = Math.floor((10985-l)/5316)*Math.floor((50*l)/17719)
+            + Math.floor(l/5670)*Math.floor((43*l)/15238);
+      l = l - Math.floor((30-j)/15)*Math.floor((17719*j)/50)
+          - Math.floor(j/16)*Math.floor((15238*j)/43) + 29;
+      var hm = Math.floor((24*l)/709);
+      var hd = l - Math.floor((709*hm)/24);
+      var hy = 30*n + j - 30;
+      return {year:hy, month:hm, day:hd};
+    }
+
+    function hijriDiff(birth, today) {
+      var years  = today.year  - birth.year;
+      var months = today.month - birth.month;
+      var days   = today.day   - birth.day;
+      if (days < 0)   { months -= 1; days += 30; }
+      if (months < 0) { years  -= 1; months += 12; }
+      return {years:years, months:months, days:days};
+    }
+
+    var todayG = new Date();
+    document.getElementById('dob').max = todayG.toISOString().split('T')[0];
+
+    function calculate() {
+      var val = document.getElementById('dob').value;
+      if (!val) { alert('Please select your date of birth.'); return; }
+      var parts = val.split('-');
+      var y = parseInt(parts[0]), m = parseInt(parts[1]), d = parseInt(parts[2]);
+      if (new Date(y, m-1, d) >= todayG) { alert('Birth date must be in the past.'); return; }
+
+      var birthH = gregorianToHijri(y, m, d);
+      var todayH = gregorianToHijri(todayG.getFullYear(), todayG.getMonth()+1, todayG.getDate());
+      var age = hijriDiff(birthH, todayH);
+
+      document.getElementById('hijriYears').textContent  = age.years;
+      document.getElementById('hijriMonths').textContent = age.months;
+      document.getElementById('hijriDays').textContent   = age.days;
+      document.getElementById('hijriBirth').textContent  = birthH.day+' '+HIJRI_MONTHS[birthH.month-1]+' '+birthH.year+' AH';
+      document.getElementById('hijriToday').textContent  = todayH.day+' '+HIJRI_MONTHS[todayH.month-1]+' '+todayH.year+' AH';
+
+      var totalDays = Math.round((todayG - new Date(y,m-1,d)) / 86400000 * (354.37/365.25));
+      var fact = 'You have lived approximately <strong>'+totalDays.toLocaleString()+'</strong> days in the Hijri calendar.';
+      if (age.years >= 40) fact += ' "When a man reaches forty, his account is settled." - Arab proverb';
+      document.getElementById('funFact').innerHTML = fact;
+
+      document.getElementById('inputSection').style.display = 'none';
+      document.getElementById('resultSection').classList.add('show');
+    }
+
+    function resetForm() {
+      document.getElementById('inputSection').style.display = '';
+      document.getElementById('resultSection').classList.remove('show');
+      document.getElementById('dob').value = '';
+    }
+
+    function shareResult() {
+      var years  = document.getElementById('hijriYears').textContent;
+      var months = document.getElementById('hijriMonths').textContent;
+      var days   = document.getElementById('hijriDays').textContent;
+      var msg = 'My Hijri age is '+years+' years, '+months+' months, and '+days+' days! Find out yours!';
+      try {
+        FBInstant.shareAsync({ intent:'CHALLENGE', text: msg, data:{hijriAge:years} });
+      } catch(e) {
+        var u = encodeURIComponent(window.location.href);
+        window.open('https://www.facebook.com/sharer/sharer.php?u='+u+'&quote='+encodeURIComponent(msg),'_blank');
+      }
+    }
+
+    // Initialize FB Instant Games
+    FBInstant.initializeAsync().then(function() {
+      document.getElementById('app').style.display = '';
+      return FBInstant.startGameAsync();
+    }).catch(function() {
+      document.getElementById('app').style.display = '';
+    });
+  </script>
+</body>
+</html>
