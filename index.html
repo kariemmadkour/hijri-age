@@ -230,7 +230,7 @@
 <body>
 
   <div id="app" style="display:none; width:100%; max-width:420px; position:relative; z-index:1;">
-    <div class="moon-wrap"><span class="moon">&#9775;&#65039;</span></div>
+    <div class="moon-wrap"><span class="moon">&#9770;&#65039;</span></div>
     <h1>Hijri Age Calculator</h1>
     <p class="subtitle">&#1603;&#1605; &#1593;&#1605;&#1585;&#1603; &#1576;&#1575;&#1604;&#1578;&#1602;&#1608;&#1610;&#1605; &#1575;&#1604;&#1607;&#1580;&#1585;&#1610;&#1567;</p>
 
@@ -364,13 +364,13 @@
       }
     }
 
-    // Initialize FB Instant Games
-    FBInstant.initializeAsync().then(function() {
-      document.getElementById('app').style.display = '';
-      return FBInstant.startGameAsync();
-    }).catch(function() {
-      document.getElementById('app').style.display = '';
-    });
+    // Show app immediately; also initialize FB Instant Games if available
+    document.getElementById('app').style.display = '';
+    if (typeof FBInstant !== 'undefined') {
+      FBInstant.initializeAsync().then(function() {
+        return FBInstant.startGameAsync();
+      }).catch(function() {});
+    }
   </script>
 </body>
 </html>
